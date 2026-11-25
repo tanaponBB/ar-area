@@ -203,6 +203,33 @@ svg{display:block}
 .btn.ghost:active{background:var(--paper2)}
 .btn.okstate{flex:1;background:var(--ok-soft);color:var(--ok);cursor:default}
 .btn.okstate:active{transform:none}
+/* products */
+.prodlink{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px 10px 10px;border-radius:16px;background:var(--paper2);text-align:left;transition:background .15s,transform .15s var(--ease)}
+.prodlink:active{background:var(--paper3);transform:scale(.985)}
+.prodlink .pli{flex:none;width:42px;height:42px;border-radius:12px;background:var(--paper);color:var(--brown);display:grid;place-items:center}
+.prodlink b{display:block;font-size:15px;font-weight:600;line-height:1.25}
+.prodlink small{display:block;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.prodlink .chev{margin-left:auto;flex:none;color:var(--ink3)}
+.phead{display:flex;align-items:center;gap:10px;padding:0 16px 12px 8px;border-bottom:1px solid var(--hair)}
+.phead .pback{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
+.phead .pback:active{background:var(--paper2)}
+.phead .pt{font-family:var(--serif);font-size:21px;font-weight:600;line-height:1.15}
+.phead .ps{font-size:13px;color:var(--ink2)}
+.phead .logo{margin-left:auto;flex:none;width:40px;height:40px}
+.plist{flex:1;min-height:0;overflow-y:auto;padding:4px 12px 18px;touch-action:pan-y;overscroll-behavior:contain}
+.prod{display:flex;gap:12px;align-items:flex-start;padding:13px 6px}
+.prod+.prod{border-top:1px solid var(--hair)}
+.pimg{flex:none;width:60px;height:60px;border-radius:14px;object-fit:cover;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:22px;color:var(--ink);
+  background:var(--paper2);background:color-mix(in srgb,var(--c) 42%,var(--paper))}
+.pinfo{flex:1;min-width:0}
+.pname{font-weight:600;font-size:15px;line-height:1.3}
+.pdesc{font-size:13px;color:var(--ink2);line-height:1.45;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ptag{display:inline-block;margin-top:6px;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:2px 9px;border-radius:999px}
+.pprice{flex:none;font-weight:600;font-size:15px;color:var(--brown);padding-top:1px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pprice.free{color:var(--ok)}
+.prod.out .pimg,.prod.out .pname,.prod.out .pdesc{opacity:.5}
+.prod.out .pprice{color:var(--ink3);font-weight:500;font-size:13px}
+.pempty{padding:28px 10px;text-align:center;color:var(--ink2);font-size:14px}
 .dnote{font-size:13px;color:var(--ink3);line-height:1.55;margin-top:-4px}
 
 /* ---------- overlays ---------- */
@@ -364,6 +391,11 @@ svg{display:block}
     <div class="view" id="vDetail" hidden>
       <div class="detail" id="detail"></div>
     </div>
+
+    <div class="view" id="vProducts" hidden>
+      <div class="phead" id="phead"></div>
+      <div class="plist" id="plist"></div>
+    </div>
   </div>
 
   <!-- intro -->
@@ -493,6 +525,7 @@ const norm = a => ((a % 360) + 360) % 360;
 const delta = (from, to) => { let d = norm(to) - norm(from); if (d > 180) d -= 360; if (d < -180) d += 360; return d; };
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const byId = id => STORES.find(s => s.id === id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtD = d => d < 5 ? d.toFixed(1) : String(Math.round(d)); // 0.8 m · 4.6 m · 12 m
 let geo = {}, base = {};
 // base = each store's position in metres relative to the scanned poster (x east, y north);
@@ -593,7 +626,7 @@ function buildPins(){
   STORES.forEach((s, i) => {
     const b = document.createElement('button');
     b.className = 'pin'; b.dataset.id = s.id; b.style.setProperty('--d', (i * 0.37) + 's'); b.style.setProperty('--c', s.c);
-    b.innerHTML = `<span class="tag"><span class="logo">${s.ini}</span><span><span class="name">${s.name}</span><span class="meta"></span></span></span><span class="stem"></span><span class="dot"></span>`;
+    b.innerHTML = `<span class="tag"><span class="logo">${esc(s.ini)}</span><span><span class="name">${esc(s.name)}</span><span class="meta"></span></span></span><span class="stem"></span><span class="dot"></span>`;
     b.addEventListener('click', e => { if (dragMoved) { e.preventDefault(); return; } openDetail(s.id); });
     pinsEl.appendChild(b); pinEls[s.id] = b;
   });
@@ -603,7 +636,7 @@ function refreshPinText(){
   STORES.forEach(s => {
     const el = pinEls[s.id], g = geo[s.id], done = S.stamps.has(s.id);
     el.classList.toggle('done', done); el.classList.toggle('sel', S.sel === s.id || S.guiding === s.id);
-    el.querySelector('.logo').innerHTML = done ? CHECK : s.ini;
+    el.querySelector('.logo').innerHTML = done ? CHECK : esc(s.ini);
     el.querySelector('.meta').innerHTML = `${fmtD(g.dist)} m ${floorBadge(g.fd, s.floor)}${done ? ' · Stamped' : ''}`;
     el.setAttribute('aria-label', `${s.name}, ${fmtD(g.dist)} metres, ${FLOOR_L[s.floor]}${done ? ', stamp collected' : ''}`);
   });
@@ -684,17 +717,20 @@ function updateGuide(){
 /* ================= sheet ================= */
 function setSheet(state){
   S.sheet = state; const app = $('app'); const sheet = $('sheet');
-  app.classList.toggle('sheet-full', state === 'full'); app.classList.toggle('sheet-detail', state === 'detail');
-  const prev = $('vDetail').hidden ? 'list' : 'detail', next = state === 'detail' ? 'detail' : 'list';
-  $('vList').hidden = state === 'detail'; $('vDetail').hidden = state !== 'detail';
-  if (prev !== next){ const v = $(next === 'detail' ? 'vDetail' : 'vList'); v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
+  app.classList.toggle('sheet-full', state === 'full'); app.classList.toggle('sheet-detail', state === 'detail' || state === 'products');
+  const VIEWS = {list: 'vList', detail: 'vDetail', products: 'vProducts'};
+  const next = state === 'detail' || state === 'products' ? state : 'list';
+  const prev = Object.keys(VIEWS).find(k => !$(VIEWS[k]).hidden) || 'list';
+  Object.entries(VIEWS).forEach(([k, id]) => $(id).hidden = k !== next);
+  if (prev !== next){ const v = $(VIEWS[next]); v.classList.remove('enter'); void v.offsetWidth; v.classList.add('enter'); }
   let h;
   if (state === 'peek'){ const pk = $('handle').offsetHeight + document.querySelector('.progress').offsetHeight + $('chips').offsetHeight + 2; app.style.setProperty('--peek', pk + 'px'); h = pk + 'px'; }
   else if (state === 'full') h = Math.round(app.clientHeight * 0.6) + 'px';
+  else if (state === 'products') h = Math.round(Math.min(app.clientHeight * 0.8, $('handle').offsetHeight + $('phead').offsetHeight + $('plist').scrollHeight + 6)) + 'px';
   else { const d = $('detail'); h = (d.scrollHeight + 22) + 'px'; }
   app.style.setProperty('--sheetH', h); sheet.style.setProperty('--sheetH', h);
   $('handle').setAttribute('aria-label', state === 'full' ? 'Collapse store list' : 'Expand store list');
-  if (state !== 'detail' && S.sel && S.sel !== S.guiding){ S.sel = null; refreshPinText(); }
+  if (state !== 'detail' && state !== 'products' && S.sel && S.sel !== S.guiding){ S.sel = null; refreshPinText(); }
 }
 let lastN = null;
 function renderProgress(){
@@ -710,7 +746,7 @@ function renderProgress(){
     $('p1').innerHTML = `<em>${n}</em> of ${GOAL} stamps`;
     $('p2').textContent = `${GOAL - n} more for a ฿300 voucher`;
     const got = [...S.stamps].map(byId);
-    stampsEl.innerHTML = Array.from({length: GOAL}, (_, i) => got[i] ? `<span class="on${i === n - 1 && n > lastN ? ' fresh' : ''}" style="--c:${got[i].c}">${got[i].ini}</span>` : `<span>${i + 1}</span>`).join('');
+    stampsEl.innerHTML = Array.from({length: GOAL}, (_, i) => got[i] ? `<span class="on${i === n - 1 && n > lastN ? ' fresh' : ''}" style="--c:${got[i].c}">${esc(got[i].ini)}</span>` : `<span>${i + 1}</span>`).join('');
   }
   lastN = n;
 }
@@ -721,8 +757,8 @@ function renderChips(){
 function renderList(){
   const list = visibleStores().slice().sort((a, b) => (S.stamps.has(a.id) - S.stamps.has(b.id)) || geo[a.id].dist - geo[b.id].dist);
   $('list').innerHTML = list.map(s => { const g = geo[s.id], done = S.stamps.has(s.id);
-    return `<button class="row${done ? ' isdone' : ''}" data-id="${s.id}"><span class="logo" style="--c:${s.c}">${done ? CHECK : s.ini}</span>
-      <span class="rt"><span class="rn">${s.name}</span><span class="rm" style="display:block">${s.kind} · ${FLOOR_L[s.floor]} · <span class="dd" data-id="${s.id}">${fmtD(g.dist)}</span> m</span><span class="ro" style="display:block">${s.offer}</span></span>
+    return `<button class="row${done ? ' isdone' : ''}" data-id="${s.id}"><span class="logo" style="--c:${s.c}">${done ? CHECK : esc(s.ini)}</span>
+      <span class="rt"><span class="rn">${esc(s.name)}</span><span class="rm" style="display:block">${esc(s.kind)} · ${FLOOR_L[s.floor]} · <span class="dd" data-id="${s.id}">${fmtD(g.dist)}</span> m</span><span class="ro" style="display:block">${esc(s.offer)}</span></span>
       <span class="rs ${done ? '' : 'no'}">${done ? CHECK + 'Stamped' : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</span></button>`; }).join('')
     + `<div class="listfoot">Stamps are collected by scanning the QR code at each store's counter. <button id="reset">Reset demo</button></div>`;
   $('list').querySelectorAll('.row').forEach(b => b.onclick = () => openDetail(b.dataset.id));
@@ -733,10 +769,11 @@ function openDetail(id){
   S.sel = id;
   const guiding = S.guiding === id;
   $('detail').innerHTML = `
-    <div class="dhead"><span class="logo" style="--c:${s.c}">${done ? CHECK : s.ini}</span>
-      <div><div class="dn">${s.name}</div><div class="dm">${s.kind} · ${FLOOR_L[s.floor]} · <span id="dDist">${fmtD(g.dist)}</span> m from you</div></div>
+    <div class="dhead"><span class="logo" style="--c:${s.c}">${done ? CHECK : esc(s.ini)}</span>
+      <div><div class="dn">${esc(s.name)}</div><div class="dm">${esc(s.kind)} · ${FLOOR_L[s.floor]} · <span id="dDist">${fmtD(g.dist)}</span> m from you</div></div>
       <button class="back" id="dBack" aria-label="Back to list"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
-    <div class="offer"><div class="ol">Campaign offer</div><div class="ot">${s.offer}</div></div>
+    <div class="offer"><div class="ol">Campaign offer</div><div class="ot">${esc(s.offer)}</div></div>
+    ${productLink(s)}
     <div class="actions">
       <button class="btn primary" id="dGuide">${guiding ? 'Guiding…' : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3 5 19l7-4 7 4-7-16Z" fill="currentColor"/></svg>Guide me`}</button>
       ${done ? `<span class="btn okstate">${CHECK} Stamped</span>` : `<button class="btn ghost" id="dStamp"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Scan QR</button>`}
@@ -745,13 +782,50 @@ function openDetail(id){
   $('dBack').onclick = () => setSheet('peek');
   $('dGuide').onclick = () => { S.guiding = id; refreshPinText(); setSheet('peek'); updateGuide(); if ($('app').classList.contains('can-walk')) toast('Turn toward the arrow, then hold Walk', 2600); };
   const st = $('dStamp'); if (st) st.onclick = () => collect(id);
+  const pl = $('dProducts'); if (pl) pl.onclick = () => openProducts(id);
   refreshPinText(); setSheet('detail');
 }
+
+/* ================= products ================= */
+const BAG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 12H6L5 8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const CUP = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16M8 3v3M11 3v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const baht = n => n === 0 ? 'Free' : '฿' + Number(n).toLocaleString('en-US', {maximumFractionDigits: 2});
+const prodLabel = s => s.group === 'food' ? 'Menu' : 'Products';
+function productLink(s){
+  const items = (s.products || []); if (!items.length) return '';
+  const prices = items.filter(p => p.available !== false && p.price != null && p.price > 0).map(p => p.price);
+  const sub = `${items.length} ${items.length === 1 ? 'item' : 'items'}${prices.length ? ' · from ' + baht(Math.min(...prices)) : ''}`;
+  return `<button class="prodlink" id="dProducts"><span class="pli">${s.group === 'food' ? CUP : BAG}</span><span><b>See ${prodLabel(s).toLowerCase()}</b><small>${sub}</small></span>
+    <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
+}
+function openProducts(id){
+  const s = byId(id); if (!s) return; S.sel = id;
+  const items = s.products || [];
+  $('phead').innerHTML = `<button class="pback" id="pBack" aria-label="Back to ${esc(s.name)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div style="min-width:0"><div class="pt">${esc(s.name)}</div><div class="ps">${prodLabel(s)} · ${items.length} ${items.length === 1 ? 'item' : 'items'}</div></div>
+    <span class="logo" style="--c:${s.c}">${esc(s.ini)}</span>`;
+  $('plist').innerHTML = items.length ? items.map(p => {
+    const out = p.available === false;
+    const img = /^https:\/\//.test(p.img || '') ? `<img class="pimg" src="${esc(p.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-ini="${esc((p.name || '?')[0])}">`
+      : `<span class="pimg" aria-hidden="true">${esc((p.name || '?')[0])}</span>`;
+    const price = out ? 'Sold out' : p.price == null ? '' : baht(p.price);
+    return `<div class="prod${out ? ' out' : ''}" style="--c:${s.c}">${img}
+      <div class="pinfo"><div class="pname">${esc(p.name)}</div>${p.desc ? `<div class="pdesc">${esc(p.desc)}</div>` : ''}${p.tag && !out ? `<span class="ptag">${esc(p.tag)}</span>` : ''}</div>
+      <div class="pprice${!out && p.price === 0 ? ' free' : ''}">${price}</div></div>`;
+  }).join('') : `<div class="pempty">This store hasn’t listed its ${prodLabel(s).toLowerCase()} yet.</div>`;
+  $('plist').scrollTop = 0;
+  $('pBack').onclick = () => openDetail(id);
+  refreshPinText(); setSheet('products');
+}
+
+// broken product image → fall back to the letter tile
+$('plist').addEventListener('error', e => { const im = e.target; if (im.tagName !== 'IMG') return;
+  const t = document.createElement('span'); t.className = 'pimg'; t.textContent = im.dataset.ini || '?'; im.replaceWith(t); }, true);
 
 /* ================= stamp flow ================= */
 function collect(id){
   const s = byId(id); const sc = $('scan'), fx = $('stampfx'), msg = $('stampmsg');
-  $('scanText').innerHTML = `Scanning the counter QR at <b>${s.name}</b>`;
+  $('scanText').innerHTML = `Scanning the counter QR at <b>${esc(s.name)}</b>`;
   $('frame').style.display = ''; $('scanText').style.display = '';
   fx.classList.remove('hit'); msg.classList.remove('on'); fx.style.setProperty('--c', s.c); $('stampInitial').textContent = s.ini;
   sc.classList.add('on');
@@ -777,7 +851,7 @@ $('voucher').onclick = e => { if (e.target.id === 'voucher') $('voucher').classL
 /* ================= spots ================= */
 function renderSpots(){
   $('spotList').innerHTML = Object.entries(SPOTS).map(([k, sp]) => `<button class="spot${k === S.spot ? ' cur' : ''}" data-k="${k}"><span class="qr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" stroke="currentColor" stroke-width="1.8"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM18 14h2M14 18v2" stroke="currentColor" stroke-width="1.8"/></svg></span>
-    <span><span class="sn" style="display:block">${sp.name}</span><span class="sf">${FLOOR_L[sp.floor]} · campaign QR poster</span></span>${k === S.spot ? '<span class="cur">You are here</span>' : ''}</button>`).join('');
+    <span><span class="sn" style="display:block">${esc(sp.name)}</span><span class="sf">${FLOOR_L[sp.floor]} · campaign QR poster</span></span>${k === S.spot ? '<span class="cur">You are here</span>' : ''}</button>`).join('');
   $('spotList').querySelectorAll('.spot').forEach(b => b.onclick = () => { setSpot(b.dataset.k); $('spots').classList.remove('on'); toast(`Re-anchored at ${SPOTS[S.spot].name}`); });
 }
 function setSpot(k){
@@ -935,6 +1009,7 @@ let hy = null;
 $('handle').addEventListener('pointerdown', e => { hy = e.clientY; });
 $('handle').addEventListener('pointerup', e => {
   if (hy == null) return; const dy = e.clientY - hy; hy = null;
+  if (S.sheet === 'products') return openDetail(S.sel);
   if (S.sheet === 'detail') return setSheet('peek');
   if (dy < -20) setSheet('full'); else if (dy > 20) setSheet('peek'); else setSheet(S.sheet === 'full' ? 'peek' : 'full');
 });

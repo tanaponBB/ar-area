@@ -13,7 +13,54 @@
       "offer": "Free size upgrade on any iced drink",
       "a": -1,
       "d": 9,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "iced-latte",
+          "name": "Iced Latte",
+          "price": 85,
+          "desc": "Double shot, fresh milk, less sweet on request",
+          "tag": "Free upsize",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "thai-tea-latte",
+          "name": "Thai Tea Latte",
+          "price": 80,
+          "desc": "Cha Thai with oat or fresh milk",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "cold-brew",
+          "name": "Cold Brew",
+          "price": 95,
+          "desc": "18-hour steep, Chiang Mai single origin",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "americano",
+          "name": "Americano",
+          "price": 70,
+          "desc": "Hot or iced",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "butter-croissant",
+          "name": "Butter Croissant",
+          "price": 65,
+          "desc": "Baked every morning by Hana Bakehouse",
+          "tag": "",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "hana",
@@ -28,7 +75,54 @@
       "offer": "Buy 2 croissants, get 1 free",
       "a": 2,
       "d": 24,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "croissant",
+          "name": "Butter Croissant",
+          "price": 55,
+          "desc": "French butter, 27 layers",
+          "tag": "Buy 2 get 1",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "pain-choc",
+          "name": "Pain au Chocolat",
+          "price": 65,
+          "desc": "Two bars of dark chocolate",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "matcha-roll",
+          "name": "Matcha Roll Cake",
+          "price": 120,
+          "desc": "Uji matcha cream, sliced to order",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "cinnamon-roll",
+          "name": "Cinnamon Roll",
+          "price": 75,
+          "desc": "Brown-butter glaze",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "sourdough",
+          "name": "Sourdough Loaf",
+          "price": 180,
+          "desc": "48-hour ferment, 700 g",
+          "tag": "",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "soi7",
@@ -43,7 +137,54 @@
       "offer": "Free Thai iced tea with any bowl",
       "a": 180,
       "d": 40,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "boat-noodles",
+          "name": "Boat Noodles",
+          "price": 89,
+          "desc": "Rich pork broth, rice noodles, morning glory",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "tom-yum",
+          "name": "Tom Yum Noodles",
+          "price": 99,
+          "desc": "Spicy-sour, minced pork, peanuts",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "khao-soi",
+          "name": "Khao Soi",
+          "price": 119,
+          "desc": "Northern curry noodles with chicken drumstick",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "thai-iced-tea",
+          "name": "Thai Iced Tea",
+          "price": 45,
+          "desc": "Free with any bowl during the campaign",
+          "tag": "Free with bowl",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "crackling",
+          "name": "Pork Crackling",
+          "price": 39,
+          "desc": "Crispy side for two",
+          "tag": "",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "thread",
@@ -58,7 +199,45 @@
       "offer": "10% off new arrivals",
       "a": -17,
       "d": 12,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "linen-shirt",
+          "name": "Linen Shirt",
+          "price": 990,
+          "desc": "Relaxed fit, sand / olive / white",
+          "tag": "New · 10% off",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "wide-trousers",
+          "name": "Wide-leg Trousers",
+          "price": 1290,
+          "desc": "Cotton twill, elastic back",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "cotton-tee",
+          "name": "Everyday Cotton Tee",
+          "price": 390,
+          "desc": "240 gsm, boxy cut",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "canvas-tote",
+          "name": "Canvas Tote",
+          "price": 450,
+          "desc": "Heavy canvas with inner pocket",
+          "tag": "",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "run",
@@ -73,7 +252,45 @@
       "offer": "Free gait check + 15% off running shoes",
       "a": 18,
       "d": 34,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "daily-trainer",
+          "name": "Daily Trainer Running Shoes",
+          "price": 3490,
+          "desc": "Cushioned all-rounder for 5–21 km",
+          "tag": "15% off",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "gait-check",
+          "name": "Gait Check",
+          "price": 0,
+          "desc": "10-minute treadmill analysis with a coach",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "run-jacket",
+          "name": "Light Running Jacket",
+          "price": 1890,
+          "desc": "Packable, water-resistant",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "socks",
+          "name": "Running Socks (3 pairs)",
+          "price": 390,
+          "desc": "Anti-blister, ankle height",
+          "tag": "",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "moss",
@@ -88,7 +305,45 @@
       "offer": "Mini succulent with any ฿500 spend",
       "a": 16,
       "d": 14,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "succulent",
+          "name": "Mini Succulent",
+          "price": 89,
+          "desc": "In a 6 cm clay pot",
+          "tag": "Free over ฿500",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "monstera",
+          "name": "Monstera Deliciosa (M)",
+          "price": 590,
+          "desc": "60 cm, nursery pot",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "ceramic-pot",
+          "name": "Ceramic Pot",
+          "price": 250,
+          "desc": "Handmade in Lampang, 14 cm",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "care-kit",
+          "name": "Plant Care Kit",
+          "price": 320,
+          "desc": "Mister, soil mix and fertiliser",
+          "tag": "",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "lumen",
@@ -103,7 +358,45 @@
       "offer": "Free lens cleaning kit",
       "a": 95,
       "d": 18,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "round-frames",
+          "name": "Classic Round Frames",
+          "price": 2900,
+          "desc": "Acetate, includes basic lenses",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "bluelight",
+          "name": "Blue-light Lenses",
+          "price": 1500,
+          "desc": "Per pair, standard index",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "sunglasses",
+          "name": "Polarised Sunglasses",
+          "price": 3200,
+          "desc": "UV400, three colours",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "clean-kit",
+          "name": "Lens Cleaning Kit",
+          "price": 190,
+          "desc": "Spray, cloth and case",
+          "tag": "Free in campaign",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "pixel",
@@ -118,7 +411,45 @@
       "offer": "Free 30-minute console session",
       "a": -15,
       "d": 30,
-      "active": true
+      "active": true,
+      "products": [
+        {
+          "id": "console-hour",
+          "name": "Console Session (1 hr)",
+          "price": 120,
+          "desc": "PS5 or Switch, first 30 minutes free",
+          "tag": "30 min free",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "board-games",
+          "name": "Board Game Table",
+          "price": 150,
+          "desc": "Per person, unlimited time",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "retro-pad",
+          "name": "Retro Controller",
+          "price": 890,
+          "desc": "USB-C, works with PC and Switch",
+          "tag": "",
+          "img": "",
+          "available": true
+        },
+        {
+          "id": "tokens",
+          "name": "Arcade Tokens (10)",
+          "price": 100,
+          "desc": "For the retro cabinets",
+          "tag": "",
+          "img": "",
+          "available": true
+        }
+      ]
     },
     {
       "id": "test",
@@ -133,7 +464,8 @@
       "offer": "Hello",
       "a": null,
       "d": null,
-      "active": true
+      "active": true,
+      "products": []
     }
   ],
   "spots": [

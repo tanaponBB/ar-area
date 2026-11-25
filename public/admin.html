@@ -199,6 +199,28 @@ svg{display:block}
 .group{display:flex;flex-direction:column;gap:14px;padding-top:18px;border-top:1px solid var(--hair)}
 .group h3{font-size:14px;font-weight:600;color:var(--ink)}
 .group h3 small{display:block;font-weight:400;font-size:12.5px;color:var(--ink3);margin-top:2px;line-height:1.5}
+.ghead{display:flex;align-items:flex-start;gap:10px}.ghead h3{flex:1}
+.prods{display:flex;flex-direction:column;gap:8px}
+.prods:empty{display:none}
+.pc{border-radius:14px;background:#fffdf9;box-shadow:inset 0 0 0 1.5px var(--paper3);transition:box-shadow .2s}
+.pc.open{box-shadow:inset 0 0 0 1.5px var(--kraft),0 6px 16px rgba(46,33,25,.06)}
+.pcrow{width:100%;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 8px;text-align:left;border-radius:14px}
+.pcrow:hover{background:rgba(46,33,25,.03)}
+.pth{flex:none;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-weight:700;font-size:15px;background:var(--paper2);background:color-mix(in srgb,var(--c) 45%,#fffdf9)}
+.pc.out .pth,.pc.out .pct b{opacity:.5}
+.pct{flex:1;min-width:0}
+.pct b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pct small{display:block;font-size:12.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp{flex:none;font-weight:600;font-size:14px;color:var(--brown)}
+.pchev{flex:none;color:var(--ink3);transition:transform .2s var(--ease)}
+.pc.open .pchev{transform:rotate(180deg)}
+.pcbody{display:flex;flex-direction:column;gap:12px;padding:6px 12px 12px}
+.pcfoot{display:flex;gap:6px;align-items:center;padding-top:2px}
+.pcfoot .sp{flex:1}
+.btn.sm{height:34px;padding:0 11px;font-size:13px;border-radius:10px}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.addprod{align-self:flex-start}
+.w120{width:120px;flex:none}
 .edfoot{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--hair);background:var(--paper)}
 .edfoot .sp{flex:1}
 .formerr{font-size:13px;color:var(--danger);padding:10px 12px;border-radius:12px;background:var(--danger-soft)}
@@ -435,22 +457,22 @@ $('items').onclick = e => {
 const QR_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" stroke="currentColor" stroke-width="1.8"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM18 14h2M14 18v2" stroke="currentColor" stroke-width="1.8"/></svg>';
 
 /* ================= editor ================= */
-const blankStore = () => ({name:'', ini:'', kind:'', group:'food', floor: A.floor !== 'all' ? A.floor : 'G', x:'', y:'', c: SWATCHES[A.data.stores.length % SWATCHES.length], offer:'', a:'', d:'', active:true});
+const blankStore = () => ({name:'', ini:'', kind:'', group:'food', floor: A.floor !== 'all' ? A.floor : 'G', x:'', y:'', c: SWATCHES[A.data.stores.length % SWATCHES.length], offer:'', a:'', d:'', active:true, products:[]});
 const blankSpot = () => ({id:'', name:'', floor: A.floor !== 'all' ? A.floor : 'G', x:'', y:'', facing:0});
-const norm = o => JSON.stringify(Object.keys(o).sort().map(k => [k, o[k] == null ? '' : String(o[k])]));
+const norm = o => JSON.stringify(Object.keys(o).sort().map(k => [k, o[k] == null ? '' : typeof o[k] === 'object' ? JSON.stringify(o[k]) : String(o[k])]));
 const isDirty = () => A.ed && norm(A.ed.draft) !== A.ed.orig;
 function guard(){ return !isDirty() || confirm('Discard your unsaved changes?'); }
 
 function openEditor(kind, id){
   const src = id ? A.data[kind].find(x => x.id === id) : (kind === 'stores' ? blankStore() : blankSpot());
   if (!src) return;
-  const draft = {...src}; if (kind === 'stores'){ if (draft.a == null) draft.a = ''; if (draft.d == null) draft.d = ''; }
-  A.ed = {kind, id, draft, orig: norm(draft), saving: false};
+  const draft = {...src}; if (kind === 'stores'){ if (draft.a == null) draft.a = ''; if (draft.d == null) draft.d = ''; draft.products = (src.products || []).map(p => ({...p})); }
+  A.ed = {kind, id, draft, orig: norm(draft), saving: false, openP: new Set()};
   if (kind !== A.tab){ A.tab = kind; }
   const ed = $('editor'); ed.hidden = false; ed.style.animation = 'none'; void ed.offsetWidth; ed.style.animation = '';
   $('work').classList.add('editing');
   ed.innerHTML = kind === 'stores' ? storeForm(!id) : spotForm(!id);
-  fillForm(); updatePreview(); renderAll();
+  fillForm(); if (kind === 'stores') renderProducts(); updatePreview(); renderAll();
   setTimeout(() => { const f = ed.querySelector('[name=name]'); if (!id && f) f.focus(); }, 60);
 }
 function closeEditor(force){
@@ -485,6 +507,10 @@ function storeForm(isNew){
       <label class="pick" id="pickWrap"><input type="color" name="cPick" aria-label="Custom colour">Custom</label></div>${fieldErr('c')}</div>
     <label class="switch"><input type="checkbox" name="active"><span class="track"></span><span><b>Live in AR</b><small>Turn off to hide the pin without deleting it.</small></span></label>
 
+    <div class="group"><div class="ghead"><h3>Products &amp; menu<small>Visitors see this list when they open the store in AR. Leave the price empty if it varies; 0 shows as Free.</small></h3><span class="counter num" id="prodCt"></span></div>
+      <div class="prods" id="prodList"></div>
+      <button type="button" class="btn ghost sm addprod" data-act="addprod"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>Add product</button>
+    </div>
     <div class="group"><h3>Location in the mall<small>Click the map or drag the pin. Metres from Gate A: X is east (+) / west (−), Y is north (+) / south (−).</small></h3>
       ${floorSeg()}${fieldErr('floor')}
       <div class="row2"><label class="field grow"><span>X</span><span class="unit"><input name="x" type="number" step="0.5" inputmode="decimal" class="num"><i>m</i></span>${fieldErr('x')}</label>
@@ -561,12 +587,13 @@ function updatePreview(){
 const compass = deg => ['N','NE','E','SE','S','SW','W','NW'][Math.round((Number(deg) || 0) / 45) % 8];
 const posterUrl = id => new URL('./?at=' + encodeURIComponent(id), location.href).href;
 
-$('editor').addEventListener('input', e => { if (!A.ed || !e.target.name) return; readInput(e.target); updatePreview(); if (['x','y','floor','facing','c','ini','name','active'].includes(e.target.name)) { A.bounds = null; renderMap(); } });
+$('editor').addEventListener('input', e => { if (A.ed && e.target.dataset.pf) return prodInput(e.target); if (!A.ed || !e.target.name) return; readInput(e.target); updatePreview(); if (['x','y','floor','facing','c','ini','name','active'].includes(e.target.name)) { A.bounds = null; renderMap(); } if (A.ed.kind === 'stores' && (e.target.name === 'c' || e.target.name === 'cPick')) $('prodList').querySelectorAll('.pth').forEach(t => t.style.setProperty('--c', A.ed.draft.c)); });
 $('editor').addEventListener('change', e => { if (A.ed && e.target.type === 'radio'){ readInput(e.target); updatePreview(); renderMap(); } });
 $('editor').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   if (b.dataset.act === 'close') closeEditor();
   if (b.dataset.act === 'delete') del();
+  if (/prod$/.test(b.dataset.act)) prodAction(b.dataset.act, Number(b.dataset.pi));
   if (b.dataset.act === 'copy'){ const u = posterUrl(A.ed.id); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('Poster link copied'), () => toast(u)); }
 });
 $('editor').addEventListener('submit', e => { e.preventDefault(); save(); });
@@ -576,12 +603,78 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); save(); }
 });
 
+/* ---------- products (inside the store editor) ---------- */
+const prodSub = p => [p.available === false ? 'Sold out' : '', p.tag, p.desc].filter(Boolean).join(' · ') || 'No description';
+const prodPrice = p => p.price == null || p.price === '' ? '—' : Number(p.price) === 0 ? 'Free' : isFinite(p.price) ? '฿' + Number(p.price).toLocaleString('en-US', {maximumFractionDigits: 2}) : '—';
+const newPid = () => 'p' + [...crypto.getRandomValues(new Uint8Array(3))].map(b => b.toString(16).padStart(2, '0')).join('');
+function prodCard(p, i, n){
+  const open = A.ed.openP.has(p.id), v = x => esc(x ?? '');
+  return `<div class="pc${open ? ' open' : ''}${p.available === false ? ' out' : ''}" data-pid="${v(p.id)}">
+    <button type="button" class="pcrow" data-act="toggleprod" data-pi="${i}" aria-expanded="${open}">
+      <span class="pth" style="--c:${v(A.ed.draft.c)}" data-sum="ini">${v((p.name || '+')[0])}</span>
+      <span class="pct"><b data-sum="name">${v(p.name || 'New product')}</b><small data-sum="sub">${v(prodSub(p))}</small></span>
+      <span class="pp num" data-sum="price">${v(prodPrice(p))}</span><svg class="pchev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="pcbody"${open ? '' : ' hidden'}>
+      <div class="row2"><label class="field grow"><span>Name</span><input data-pi="${i}" data-pf="name" maxlength="60" placeholder="e.g. Iced Latte" value="${v(p.name)}">${fieldErr(`products.${i}.name`)}</label>
+        <label class="field w120"><span>Price</span><span class="unit"><input data-pi="${i}" data-pf="price" type="number" min="0" step="1" inputmode="decimal" class="num" placeholder="—" value="${v(p.price)}"><i>฿</i></span>${fieldErr(`products.${i}.price`)}</label></div>
+      <label class="field"><span class="lab">Description <span class="counter num" data-ct>${(p.desc || '').length}/140</span></span><textarea data-pi="${i}" data-pf="desc" maxlength="140" rows="2" placeholder="e.g. Double shot, fresh milk">${v(p.desc)}</textarea>${fieldErr(`products.${i}.desc`)}</label>
+      <div class="row2"><label class="field grow"><span>Tag</span><input data-pi="${i}" data-pf="tag" maxlength="24" placeholder="e.g. Campaign deal" value="${v(p.tag)}">${fieldErr(`products.${i}.tag`)}</label>
+        <label class="field grow"><span>Image link</span><input data-pi="${i}" data-pf="img" type="url" placeholder="https://…" value="${v(p.img)}">${fieldErr(`products.${i}.img`)}</label></div>
+      <label class="switch"><input type="checkbox" data-pi="${i}" data-pf="available"${p.available === false ? '' : ' checked'}><span class="track"></span><span><b>Available</b><small>Turn off to show it as sold out.</small></span></label>
+      <div class="pcfoot"><button type="button" class="btn ghost sm" data-act="upprod" data-pi="${i}"${i === 0 ? ' disabled' : ''}>Move up</button>
+        <button type="button" class="btn ghost sm" data-act="downprod" data-pi="${i}"${i === n - 1 ? ' disabled' : ''}>Move down</button><span class="sp"></span>
+        <button type="button" class="btn danger sm" data-act="delprod" data-pi="${i}">Remove</button></div>
+    </div></div>`;
+}
+function renderProducts(){
+  const list = A.ed.draft.products, n = list.length;
+  $('prodList').innerHTML = list.map((p, i) => prodCard(p, i, n)).join('');
+  $('prodCt').textContent = n ? `${n} ${n === 1 ? 'item' : 'items'}` : '';
+}
+function openCard(card, open){
+  const id = card.dataset.pid; open ? A.ed.openP.add(id) : A.ed.openP.delete(id);
+  card.classList.toggle('open', open); card.querySelector('.pcbody').hidden = !open; card.querySelector('.pcrow').setAttribute('aria-expanded', open);
+}
+function prodInput(el){
+  const i = Number(el.dataset.pi), f = el.dataset.pf, p = A.ed.draft.products[i]; if (!p) return;
+  const v = el.type === 'checkbox' ? el.checked : el.value;
+  p[f] = f === 'price' ? (v === '' ? null : isFinite(v) ? Number(v) : v) : v;
+  const card = el.closest('.pc');
+  card.querySelector('[data-sum=name]').textContent = p.name || 'New product';
+  card.querySelector('[data-sum=ini]').textContent = (p.name || '+')[0];
+  card.querySelector('[data-sum=sub]').textContent = prodSub(p);
+  card.querySelector('[data-sum=price]').textContent = prodPrice(p);
+  card.classList.toggle('out', p.available === false);
+  if (f === 'desc') card.querySelector('[data-ct]').textContent = `${v.length}/140`;
+  const fld = el.closest('.field'); if (fld){ fld.classList.remove('bad'); const er = fld.querySelector('.err'); if (er) er.textContent = ''; }
+  updatePreview();
+}
+function prodAction(act, i){
+  const list = A.ed.draft.products;
+  if (act === 'addprod'){
+    const p = {id: newPid(), name: '', price: null, desc: '', tag: '', img: '', available: true};
+    list.push(p); A.ed.openP.add(p.id); renderProducts(); updatePreview();
+    const card = $('prodList').lastElementChild; card.scrollIntoView({block: 'nearest', behavior: 'smooth'}); card.querySelector('[data-pf=name]').focus({preventScroll: true});
+    return;
+  }
+  const card = $('prodList').children[i]; if (!card) return;
+  if (act === 'toggleprod') return openCard(card, !card.classList.contains('open'));
+  if (act === 'upprod' && i > 0) [list[i - 1], list[i]] = [list[i], list[i - 1]];
+  if (act === 'downprod' && i < list.length - 1) [list[i + 1], list[i]] = [list[i], list[i + 1]];
+  if (act === 'delprod'){ const [gone] = list.splice(i, 1); A.ed.openP.delete(gone.id); toast(`Removed ${gone.name || 'product'} — save to apply`); }
+  renderProducts(); updatePreview();
+  if (act !== 'delprod'){ const j = act === 'upprod' ? i - 1 : i + 1; const b = $('prodList').children[j]?.querySelector(`[data-act=${act}]`); (b && !b.disabled ? b : $('prodList').children[j]?.querySelector('.pcrow'))?.focus(); }
+}
+
 function showErrors(errs, msg){
   $('formErr').textContent = msg || '';
   let first = null;
   for (const [k, m] of Object.entries(errs || {})){
     const e = f$(`[data-err="${k}"]`); if (e) e.textContent = m;
-    const inp = f$(`[name="${k}"]`); if (inp && inp.closest('.field')){ inp.closest('.field').classList.add('bad'); first = first || inp; }
+    let inp = f$(`[name="${k}"]`);
+    const pm = /^products\.(\d+)\.(\w+)$/.exec(k);
+    if (pm){ const card = $('prodList').children[Number(pm[1])]; if (card){ openCard(card, true); inp = card.querySelector(`[data-pf="${pm[2]}"]`); } }
+    if (inp && inp.closest('.field')){ inp.closest('.field').classList.add('bad'); first = first || inp; }
   }
   if (first) first.focus();
 }
@@ -593,6 +686,11 @@ function clientCheck(){
   if (A.ed.kind === 'stores'){
     if (!String(d.offer).trim()) errs.offer = 'Describe the campaign offer';
     if ((d.a === '') !== (d.d === '')) errs[d.a === '' ? 'a' : 'd'] = 'Fill in both, or leave both empty';
+    (d.products || []).forEach((p, i) => {
+      if (!String(p.name || '').trim()) errs[`products.${i}.name`] = 'Enter the product name';
+      if (p.price != null && p.price !== '' && !(isFinite(p.price) && Number(p.price) >= 0)) errs[`products.${i}.price`] = 'Price in baht, 0 or more';
+      if (p.img && !/^https:\/\//.test(p.img)) errs[`products.${i}.img`] = 'Use an https:// image link';
+    });
   }
   return errs;
 }

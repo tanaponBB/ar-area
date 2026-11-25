@@ -80,6 +80,9 @@ Within **1 m** of an unstamped store on your floor, a *You're here* card pops up
 - **Admin key** required for every change; reading pins is public (the AR page needs it).
 - **Stores**: name, initials, category, group, offer, pin colour, floor, map position (click or drag on the mall map),
   optional demo AR placement (angle + distance), and *Live in AR* to hide a pin without deleting it. Deleting offers **Undo**.
+- **Products & menu** (inside each store): name, price in ฿ (empty = varies, 0 = Free), description, tag (e.g. "Campaign deal"),
+  optional `https://` image link, and *Available* (off = sold out). Reorder with Move up / down. Saved with the store.
+  In the AR view, visitors tap a store → **See menu** (food) or **See products** → the full list.
 - **QR spots**: poster code (`?at=code`, fixed once created), position and facing. Copy the poster link to make the QR code.
 - The AR page loads pins when it opens — reload the phone to see edits. If the API can't be reached it falls back to the built-in set.
 
