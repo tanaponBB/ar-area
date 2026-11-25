@@ -1,0 +1,4 @@
+.oil-ui
+.admin-key
+data/*.tmp
+node_modules

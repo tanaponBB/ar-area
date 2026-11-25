@@ -1,11 +1,13 @@
 {
   "name": "pin-hunt-ar",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Mall AR campaign prototype — QR scan opens a camera view with pinned stores",
+  "description": "Mall AR campaign — QR scan opens a camera view with pinned stores; admin at /admin. Runs locally or on Vercel.",
   "scripts": {
     "start": "node server.js",
     "tunnel": "node server.js --tunnel"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": "22.x"
+  }
 }

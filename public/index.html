@@ -941,8 +941,8 @@ $('handle').addEventListener('pointerup', e => {
 $('gStop').onclick = () => { S.guiding = null; refreshPinText(); updateGuide(); };
 window.addEventListener('resize', () => { buildPano(); setSheet(S.sheet); });
 
-// desktop QR (only when served through an ngrok tunnel)
-if (/ngrok/.test(location.hostname) && innerWidth >= 1000){
+// desktop QR: only on a public HTTPS address (ngrok, Vercel…), never on localhost
+if (location.protocol === 'https:' && !/^(localhost|127\.|192\.168\.)/.test(location.hostname) && innerWidth >= 1000){
   const sc = document.createElement('script');
   sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
   sc.onload = () => { try { new QRCode($('qrcode'), {text: location.origin + location.pathname + '?at=' + S.spot + (LAYOUT === 'mall' ? '&layout=mall' : ''), width: 168, height: 168, colorDark: '#2e2119', colorLight: '#f4ede1'}); $('qrbox').hidden = false; } catch(e) {} };

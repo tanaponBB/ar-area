@@ -158,6 +158,8 @@ svg{display:block}
 .pill{flex:none;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--paper2);color:var(--ink2)}
 .pill.fl{background:transparent;box-shadow:inset 0 0 0 1.5px var(--paper3)}
 .pill.hid{background:var(--accent-soft);color:var(--accent)}
+.notice{margin:0 18px 12px;padding:10px 12px;border-radius:12px;background:var(--accent-soft);color:var(--ink);font-size:13px;line-height:1.5}
+.notice b{color:var(--accent)}
 .empty{padding:40px 18px;text-align:center;color:var(--ink2)}
 .empty b{display:block;font-size:17px;color:var(--ink);margin-bottom:4px}
 .empty .btn{margin-top:16px}
@@ -261,7 +263,7 @@ svg{display:block}
   <form class="lockcard" id="lockForm" autocomplete="off">
     <div class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="#5b3a24"/></svg></div>
     <h1>Pin Hunt admin</h1>
-    <p>Enter the admin key shown in the server terminal when you ran <code>npm start</code>.</p>
+    <p>On Vercel this is the <code>ADMIN_KEY</code> environment variable. Running locally, it’s printed in the terminal by <code>npm start</code>.</p>
     <label class="field" id="keyField"><span>Admin key</span><input type="password" id="keyInput" autocomplete="current-password" required autofocus></label>
     <div class="err" id="keyErr" style="margin-top:8px"></div>
     <button class="btn primary" id="keyBtn" type="submit">Unlock</button>
@@ -291,6 +293,7 @@ svg{display:block}
         <div><h1 id="listTitle">Stores</h1><p id="listSub" class="num"></p></div>
         <button class="btn primary" id="addBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span id="addLbl">Add store</span></button>
       </div>
+      <div class="notice" id="roNote" hidden><b>Saving is off.</b> This deployment has no database yet. In Vercel, open Storage → connect Upstash Redis to this project, then redeploy.</div>
       <div class="tools">
         <label class="field search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="q" type="search" placeholder="Search name or offer" aria-label="Search"></label>
         <label class="field" id="groupWrap"><select id="groupSel" aria-label="Filter by group">
@@ -354,7 +357,10 @@ function lock(msg){
 async function unlock(key, quiet){
   const r = await fetch('api/session', {headers: {'Authorization': 'Bearer ' + key}}).catch(() => null);
   if (!r){ if (!quiet) { $('keyErr').textContent = 'Can’t reach the server. Is npm start running?'; } return false; }
-  if (!r.ok){ if (!quiet){ $('keyErr').textContent = 'That key doesn’t match. Check the server terminal.'; $('keyField').classList.add('bad'); } return false; }
+  const sj = await r.json().catch(() => ({}));
+  if (r.status === 503){ if (!quiet) $('keyErr').textContent = 'ADMIN_KEY isn’t set on the server yet. Add it in Vercel → Settings → Environment Variables, then redeploy.'; return false; }
+  if (!r.ok){ if (!quiet){ $('keyErr').textContent = 'That key doesn’t match. Check ADMIN_KEY (or the terminal when running locally).'; $('keyField').classList.add('bad'); } return false; }
+  $('roNote').hidden = sj.storage !== 'readonly';
   A.key = key; try { sessionStorage.setItem(KEY_SS, key); } catch(e) {}
   const d = await (await fetch('api/data', {cache: 'no-store'})).json();
   A.data = d; $('lock').hidden = true; $('app').hidden = false; renderAll(); return true;
