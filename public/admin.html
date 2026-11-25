@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2e2119">
+<meta name="robots" content="noindex">
+<title>Pin Hunt Admin</title>
+<link rel="preload" href="fonts/FCIconic-Regular.otf" as="font" type="font/otf" crossorigin>
+<link rel="preload" href="fonts/FCIconic-SemiBold.otf" as="font" type="font/otf" crossorigin>
+<style>
+@font-face{font-family:"FC Iconic";src:url(fonts/FCIconic-Regular.otf) format("opentype");font-weight:400;font-display:swap}
+@font-face{font-family:"FC Iconic";src:url(fonts/FCIconic-Medium.otf) format("opentype");font-weight:500;font-display:swap}
+@font-face{font-family:"FC Iconic";src:url(fonts/FCIconic-SemiBold.otf) format("opentype");font-weight:600;font-display:swap}
+@font-face{font-family:"FC Iconic";src:url(fonts/FCIconic-Bold.otf) format("opentype");font-weight:700;font-display:swap}
+:root{
+  --canvas:#e9e0d0; --paper:#f6f0e6; --paper2:#ede4d5; --paper3:#ddd0bb; --kraft:#c8ad86;
+  --ink:#2e2119; --ink2:#5e4a3b; --ink3:#77634f;
+  --brown:#5b3a24; --brown-press:#4a2f1d; --on-brown:#f6efe3;
+  --accent:#b0532c; --accent-soft:rgba(176,83,44,.12);
+  --ok:#5f6e35; --ok-soft:rgba(95,110,53,.13);
+  --danger:#a63d2a; --danger-soft:rgba(166,61,42,.1);
+  --hair:rgba(46,33,25,.12); --hair2:rgba(46,33,25,.2);
+  --font:"FC Iconic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --bar:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--canvas);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{border:0;background:none;cursor:pointer}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+svg{display:block}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- buttons ---------- */
+.btn{height:42px;padding:0 16px;border-radius:12px;font-weight:600;font-size:14.5px;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;transition:transform .15s var(--ease),background .2s,box-shadow .2s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--brown);color:var(--on-brown);box-shadow:0 4px 12px rgba(74,47,29,.2)}
+.btn.primary:hover{background:var(--brown-press)}
+.btn.primary[disabled]{opacity:.55;cursor:default;transform:none}
+.btn.ghost{color:var(--brown);box-shadow:inset 0 0 0 1.5px var(--kraft)}
+.btn.ghost:hover{background:var(--paper2)}
+.btn.danger{color:var(--danger);padding:0 12px}
+.btn.danger:hover{background:var(--danger-soft)}
+.iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--ink2)}
+.iconbtn:hover{background:var(--paper2)}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- lock ---------- */
+.lock{min-height:100%;display:grid;place-items:center;padding:24px 16px;
+  background:radial-gradient(120% 90% at 50% 30%,#f1e9dc 0,#e3d7c3 60%,#d6c7ae 100%)}
+.lockcard{width:min(400px,100%);background:var(--paper);border-radius:24px;padding:28px 26px 24px;box-shadow:0 0 0 1px var(--hair),0 30px 60px rgba(60,38,20,.18);animation:rise .5s var(--ease) both}
+.lockcard .mark{width:48px;height:48px;border-radius:15px;background:var(--brown);color:var(--on-brown);display:grid;place-items:center;margin-bottom:18px}
+.lockcard h1{font-size:26px;font-weight:600;line-height:1.2}
+.lockcard p{color:var(--ink2);margin:6px 0 20px}
+.lockcard .btn{width:100%;height:48px;margin-top:14px}
+.lockcard code{font-family:inherit;font-weight:600;background:var(--paper2);padding:1px 6px;border-radius:6px}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- fields ---------- */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span:first-child,.flabel{font-size:13px;font-weight:600;color:var(--ink2)}
+.input,.field input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),.field select,.field textarea{
+  width:100%;height:44px;padding:0 13px;border-radius:12px;border:0;background:#fffdf9;box-shadow:inset 0 0 0 1.5px var(--paper3);outline:none;transition:box-shadow .15s}
+.field textarea{height:auto;min-height:76px;padding:11px 13px;resize:vertical;line-height:1.45}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235e4a3b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.input:focus,.field input:focus,.field select:focus,.field textarea:focus{box-shadow:inset 0 0 0 2px var(--brown)}
+.field.bad input,.field.bad textarea,.field.bad select{box-shadow:inset 0 0 0 2px var(--danger)}
+.err{font-size:12.5px;color:var(--danger);min-height:0}
+.err:empty{display:none}
+.help{font-size:12.5px;color:var(--ink3);line-height:1.5}
+.counter{margin-left:auto;font-weight:500;color:var(--ink3);font-size:12px}
+.lab{display:flex;align-items:baseline}
+.row2{display:flex;gap:12px}
+.row2>.grow{flex:1}
+.w96{width:96px;flex:none}
+.unit{position:relative}
+.unit input{padding-right:34px!important}
+.unit i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;font-size:13px;color:var(--ink3);pointer-events:none}
+
+.seg{display:flex;padding:3px;border-radius:12px;background:var(--paper2);gap:2px}
+.seg label{flex:1;position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:grid;place-items:center;white-space:nowrap;height:36px;padding:0 12px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer;transition:background .2s,color .2s}
+.seg input:checked+span{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(46,33,25,.18)}
+.seg input:focus-visible+span{outline:2.5px solid var(--accent);outline-offset:1px}
+
+.swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.swatches label{position:relative}
+.swatches input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+.swatches .sw{display:block;width:30px;height:30px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 1.5px rgba(46,33,25,.15);cursor:pointer;transition:transform .15s var(--ease)}
+.swatches input:checked+.sw{box-shadow:0 0 0 2.5px var(--paper),0 0 0 4.5px var(--brown);transform:scale(1.05)}
+.swatches input:focus-visible+.sw{outline:2.5px solid var(--accent);outline-offset:4px}
+.pick{display:flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 4px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--paper3);font-size:13px;color:var(--ink2);cursor:pointer}
+.pick input{width:24px;height:24px;border:0;padding:0;background:none;border-radius:50%;cursor:pointer}
+.pick input::-webkit-color-swatch-wrapper{padding:0}.pick input::-webkit-color-swatch{border:0;border-radius:50%}
+.pick.on{box-shadow:inset 0 0 0 2px var(--brown)}
+
+.switch{display:flex;align-items:center;gap:12px;cursor:pointer}
+.switch input{position:absolute;opacity:0;pointer-events:none}
+.switch .track{flex:none;width:44px;height:26px;border-radius:999px;background:var(--paper3);position:relative;transition:background .2s}
+.switch .track::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(46,33,25,.3);transition:transform .25s var(--ease)}
+.switch input:checked+.track{background:var(--ok)}
+.switch input:checked+.track::after{transform:translateX(18px)}
+.switch input:focus-visible+.track{outline:2.5px solid var(--accent);outline-offset:2px}
+.switch b{display:block;font-weight:600;font-size:14.5px}
+.switch small{display:block;font-size:12.5px;color:var(--ink3)}
+
+/* ---------- app shell ---------- */
+.admin{height:100dvh;display:grid;grid-template-rows:var(--bar) 1fr;grid-template-columns:minmax(0,1fr)}
+.work,.listpane,.mappane{min-width:0}
+.work{overflow:hidden}
+.bar{display:flex;align-items:center;gap:16px;padding:0 16px 0 20px;background:var(--ink);color:var(--on-brown)}
+.brand{display:flex;align-items:center;gap:10px;margin-right:8px}
+.brand .mark{width:36px;height:36px;border-radius:11px;background:var(--paper);color:var(--brown);display:grid;place-items:center}
+.brand b{display:block;font-weight:600;font-size:16px;line-height:1.1}
+.brand small{display:block;font-size:12px;color:rgba(246,239,227,.66)}
+.tabs{position:relative;display:flex;padding:3px;border-radius:12px;background:rgba(246,239,227,.1)}
+.tabs .ind{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:9px;background:var(--paper);transition:transform .3s var(--ease),width .3s var(--ease)}
+.tabs button{position:relative;z-index:1;height:36px;padding:0 14px;border-radius:9px;font-weight:600;font-size:14px;color:rgba(246,239,227,.78);display:flex;align-items:center;gap:7px;transition:color .2s}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabs .ct{font-size:12px;font-weight:600;min-width:22px;height:20px;padding:0 6px;border-radius:999px;background:rgba(246,239,227,.16);display:grid;place-items:center}
+.tabs button[aria-selected="true"] .ct{background:var(--paper2)}
+.bar .sp{flex:1}
+.barlink{height:38px;padding:0 14px;border-radius:11px;display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;color:var(--on-brown);text-decoration:none;box-shadow:inset 0 0 0 1.5px rgba(246,239,227,.24)}
+.barlink:hover{background:rgba(246,239,227,.08)}
+.barbtn{color:rgba(246,239,227,.8)}
+.barbtn:hover{background:rgba(246,239,227,.08)}
+
+.work{display:grid;grid-template-columns:372px minmax(0,1fr);min-height:0}
+.work.editing{grid-template-columns:372px minmax(0,1fr) 440px}
+
+/* list pane */
+.listpane{display:flex;flex-direction:column;min-height:0;background:var(--paper);border-right:1px solid var(--hair)}
+.listhead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:20px 18px 14px}
+.listhead h1{font-size:24px;font-weight:600;line-height:1.15}
+.listhead p{font-size:13px;color:var(--ink3);margin-top:2px}
+.tools{display:flex;gap:8px;padding:0 18px 12px}
+.search{position:relative;flex:1}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink3);pointer-events:none}
+.search input{padding-left:36px!important}
+.tools select{width:auto!important;flex:none}
+.items{flex:1;min-height:0;overflow-y:auto;padding:4px 10px 16px;border-top:1px solid var(--hair)}
+.item{width:100%;display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:14px;text-align:left;transition:background .15s}
+.item:hover{background:var(--paper2)}
+.item.sel{background:var(--paper2);box-shadow:inset 3px 0 0 var(--accent)}
+.item.off .ilogo{opacity:.5}
+.item.off .in{color:var(--ink2)}
+.ilogo{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--c);box-shadow:inset 0 0 0 1.5px rgba(46,33,25,.14)}
+.ilogo.qr{border-radius:12px;background:var(--brown);color:var(--on-brown);box-shadow:none}
+.it{flex:1;min-width:0}
+.in{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.im{display:block;font-size:12.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{flex:none;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--paper2);color:var(--ink2)}
+.pill.fl{background:transparent;box-shadow:inset 0 0 0 1.5px var(--paper3)}
+.pill.hid{background:var(--accent-soft);color:var(--accent)}
+.empty{padding:40px 18px;text-align:center;color:var(--ink2)}
+.empty b{display:block;font-size:17px;color:var(--ink);margin-bottom:4px}
+.empty .btn{margin-top:16px}
+
+/* map pane */
+.mappane{display:flex;flex-direction:column;min-width:0;min-height:0;padding:16px}
+.mapcard{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;background:var(--paper);border-radius:20px;box-shadow:0 0 0 1px var(--hair);overflow:hidden}
+.maphead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px 12px 18px;border-bottom:1px solid var(--hair)}
+.maphead h2{font-size:16px;font-weight:600}
+.maphead .seg span{height:32px;font-size:13px;padding:0 10px}
+.legend{display:flex;gap:14px;margin-left:auto;font-size:12.5px;color:var(--ink3)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{display:block;width:12px;height:12px;border-radius:50%;background:var(--kraft)}
+.legend i.sq{border-radius:3px;background:var(--brown)}
+.legend i.dash{background:none;border:1.5px dashed var(--ink3)}
+#map{flex:1;min-height:0;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+#map.placing{cursor:crosshair}
+#map .mi{cursor:pointer}
+#map .mi.grab{cursor:grab}
+#map.dragging,#map.dragging .mi{cursor:grabbing}
+.mapfoot{position:absolute;left:14px;right:14px;bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;pointer-events:none}
+.maphint{display:flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;border-radius:999px;background:var(--ink);color:var(--on-brown);font-size:13px;font-weight:500;box-shadow:0 8px 20px rgba(46,33,25,.25);animation:rise .3s var(--ease) both}
+.maphint .dotc{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(176,83,44,.35)}
+.coords{margin-left:auto;font-size:12.5px;color:var(--ink3);background:var(--paper);padding:4px 10px;border-radius:999px;box-shadow:0 0 0 1px var(--hair)}
+
+/* editor */
+.editor{display:flex;flex-direction:column;min-height:0;background:var(--paper);border-left:1px solid var(--hair);animation:slidein .32s var(--ease) both}
+@keyframes slidein{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.edhead{display:flex;align-items:flex-start;gap:10px;padding:18px 14px 12px 22px}
+.edhead .eb{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.edhead h2{font-size:22px;font-weight:600;line-height:1.2;word-break:break-word}
+.edhead .dirty{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--accent);margin-top:2px}
+.edhead .dirty::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.edhead>div{flex:1;min-width:0}
+.edbody{flex:1;min-height:0;overflow-y:auto;padding:4px 22px 22px;display:flex;flex-direction:column;gap:18px}
+.edbody>*{flex-shrink:0}
+.group{display:flex;flex-direction:column;gap:14px;padding-top:18px;border-top:1px solid var(--hair)}
+.group h3{font-size:14px;font-weight:600;color:var(--ink)}
+.group h3 small{display:block;font-weight:400;font-size:12.5px;color:var(--ink3);margin-top:2px;line-height:1.5}
+.edfoot{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--hair);background:var(--paper)}
+.edfoot .sp{flex:1}
+.formerr{font-size:13px;color:var(--danger);padding:10px 12px;border-radius:12px;background:var(--danger-soft)}
+.formerr:empty{display:none}
+
+/* AR pin preview */
+.preview{position:relative;height:118px;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(80% 120% at 50% 0,#4a3a2c 0,#2a2019 60%,#1d1611 100%)}
+.preview::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 46px,rgba(255,235,205,.06) 46px 48px)}
+.preview .cap{position:absolute;left:12px;top:10px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(246,239,227,.6)}
+.ptag{position:relative;display:flex;align-items:center;gap:9px;padding:5px 14px 5px 5px;border-radius:999px;background:var(--paper);box-shadow:0 10px 26px rgba(0,0,0,.35);white-space:nowrap;max-width:calc(100% - 32px);transition:opacity .2s}
+.ptag .ilogo{width:32px;height:32px;font-size:12px}
+.ptag b{display:block;font-weight:600;font-size:14px;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
+.ptag small{display:block;font-size:12px;color:var(--ink2);line-height:1.25}
+.ptag.off{opacity:.45}
+.pstem{width:2px;height:20px;background:linear-gradient(rgba(246,239,227,.85),rgba(246,239,227,0))}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--paper)}
+.qrprev{position:relative;display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:999px;background:var(--paper);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.dial{width:52px;height:52px;flex:none}
+
+.linkbox{display:flex;gap:8px;align-items:center}
+.linkbox code{flex:1;min-width:0;font-family:inherit;font-size:13px;padding:11px 12px;border-radius:12px;background:var(--paper2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink2)}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);z-index:50;display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);
+  padding:10px 10px 10px 16px;border-radius:14px;background:var(--ink);color:var(--on-brown);box-shadow:0 14px 34px rgba(46,33,25,.35);font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .3s var(--ease)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast.noact{padding-right:16px}
+.toast button{height:34px;padding:0 12px;border-radius:10px;font-weight:600;color:#f0c9a8}
+.toast button:hover{background:rgba(246,239,227,.1)}
+
+/* ---------- responsive ---------- */
+@media (max-width:1180px){
+  .work.editing{grid-template-columns:340px minmax(0,1fr)}
+  .work{grid-template-columns:340px minmax(0,1fr)}
+  .editor{position:fixed;top:var(--bar);right:0;bottom:0;width:min(440px,100vw);z-index:20;box-shadow:-20px 0 50px rgba(46,33,25,.2)}
+  .legend{display:none}
+}
+@media (max-width:760px){
+  .admin{height:auto;min-height:100dvh;grid-template-rows:auto 1fr}
+  .bar{flex-wrap:wrap;gap:10px;padding:10px 12px}
+  .bar .sp{display:none}
+  .brand{margin-right:auto}
+  .tabs{order:3;width:100%}
+  .tabs button{flex:1;justify-content:center}
+  .barlink .lbl{display:none}
+  .barlink{width:38px;padding:0;justify-content:center}
+  .work,.work.editing{display:flex;flex-direction:column;overflow:visible}
+  .listpane{border-right:0}
+  .items{max-height:none;overflow:visible}
+  .mappane{padding:12px;height:440px;flex:none}
+  .editor{top:0;width:100vw}
+  .maphead .seg{order:3;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01s!important;animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ lock ============ -->
+<div class="lock" id="lock" hidden>
+  <form class="lockcard" id="lockForm" autocomplete="off">
+    <div class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="#5b3a24"/></svg></div>
+    <h1>Pin Hunt admin</h1>
+    <p>Enter the admin key shown in the server terminal when you ran <code>npm start</code>.</p>
+    <label class="field" id="keyField"><span>Admin key</span><input type="password" id="keyInput" autocomplete="current-password" required autofocus></label>
+    <div class="err" id="keyErr" style="margin-top:8px"></div>
+    <button class="btn primary" id="keyBtn" type="submit">Unlock</button>
+  </form>
+</div>
+
+<!-- ============ app ============ -->
+<div class="admin" id="app" hidden>
+  <header class="bar">
+    <div class="brand">
+      <span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="#f6f0e6"/></svg></span>
+      <span><b>Pin Hunt</b><small>Campaign admin · The Hall</small></span>
+    </div>
+    <div class="tabs" role="tablist" id="tabs">
+      <span class="ind" id="tabInd"></span>
+      <button role="tab" data-tab="stores" aria-selected="true">Stores <span class="ct num" id="ctStores">0</span></button>
+      <button role="tab" data-tab="spots" aria-selected="false">QR spots <span class="ct num" id="ctSpots">0</span></button>
+    </div>
+    <span class="sp"></span>
+    <a class="barlink" href="./" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">Open AR view</span></a>
+    <button class="iconbtn barbtn" id="lockBtn" aria-label="Lock admin" title="Lock admin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2"/></svg></button>
+  </header>
+
+  <main class="work" id="work">
+    <section class="listpane">
+      <div class="listhead">
+        <div><h1 id="listTitle">Stores</h1><p id="listSub" class="num"></p></div>
+        <button class="btn primary" id="addBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span id="addLbl">Add store</span></button>
+      </div>
+      <div class="tools">
+        <label class="field search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="q" type="search" placeholder="Search name or offer" aria-label="Search"></label>
+        <label class="field" id="groupWrap"><select id="groupSel" aria-label="Filter by group">
+          <option value="all">All groups</option><option value="food">Food &amp; drink</option><option value="fashion">Fashion</option><option value="life">Lifestyle</option></select></label>
+      </div>
+      <div class="items" id="items"></div>
+    </section>
+
+    <section class="mappane">
+      <div class="mapcard">
+        <div class="maphead">
+          <h2>Mall map</h2>
+          <div class="seg" id="floorSeg" role="radiogroup" aria-label="Show floor">
+            <label><input type="radio" name="mf" value="all" checked><span>All floors</span></label>
+            <label><input type="radio" name="mf" value="G"><span>G</span></label>
+            <label><input type="radio" name="mf" value="F1"><span>F1</span></label>
+            <label><input type="radio" name="mf" value="F2"><span>F2</span></label>
+          </div>
+          <div class="legend"><span><i></i>Store</span><span><i class="sq"></i>QR spot</span><span><i class="dash"></i>Hidden</span></div>
+        </div>
+        <svg id="map" role="img" aria-label="Top-down mall map with stores and QR spots"></svg>
+        <div class="mapfoot"><span class="maphint" id="mapHint" hidden><span class="dotc"></span><span id="mapHintText"></span></span><span class="coords num" id="coords" hidden></span></div>
+      </div>
+    </section>
+
+    <aside class="editor" id="editor" hidden aria-label="Editor"></aside>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="toastAct" hidden></button></div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const FLOOR_L = {G:'Ground', F1:'Floor 1', F2:'Floor 2'};
+const GROUP_L = {food:'Food & drink', fashion:'Fashion', life:'Lifestyle'};
+const SWATCHES = ['#d4a574','#ead2ab','#d98a65','#c4aab6','#b3b97c','#9fb79a','#a3b5bb','#dcb257','#c9b49a','#b89482'];
+const KEY_SS = 'pinhunt.adminKey';
+const A = { key: '', data: {stores: [], spots: []}, tab: 'stores', q: '', group: 'all', floor: 'all', ed: null, bounds: null, drag: null };
+
+/* ================= api ================= */
+async function api(method, url, body){
+  let r;
+  try {
+    r = await fetch(url, {method, headers: {'Authorization': 'Bearer ' + A.key, ...(body ? {'Content-Type': 'application/json'} : {})}, body: body ? JSON.stringify(body) : undefined});
+  } catch(e) { const err = new Error('Can’t reach the server. Your changes are still here — try again.'); err.net = true; throw err; }
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401){ lock('Your admin key no longer works. Enter it again.'); const e = new Error(j.error || 'Locked'); e.silent = true; throw e; }
+  if (!r.ok){ const e = new Error(j.error || 'Something went wrong — nothing was saved.'); e.errors = j.errors || {}; throw e; }
+  return j;
+}
+
+/* ================= lock ================= */
+function lock(msg){
+  A.key = ''; try { sessionStorage.removeItem(KEY_SS); } catch(e) {}
+  $('app').hidden = true; $('lock').hidden = false; $('keyErr').textContent = msg || ''; $('keyField').classList.toggle('bad', !!msg);
+  $('keyInput').value = ''; setTimeout(() => $('keyInput').focus(), 50);
+}
+async function unlock(key, quiet){
+  const r = await fetch('api/session', {headers: {'Authorization': 'Bearer ' + key}}).catch(() => null);
+  if (!r){ if (!quiet) { $('keyErr').textContent = 'Can’t reach the server. Is npm start running?'; } return false; }
+  if (!r.ok){ if (!quiet){ $('keyErr').textContent = 'That key doesn’t match. Check the server terminal.'; $('keyField').classList.add('bad'); } return false; }
+  A.key = key; try { sessionStorage.setItem(KEY_SS, key); } catch(e) {}
+  const d = await (await fetch('api/data', {cache: 'no-store'})).json();
+  A.data = d; $('lock').hidden = true; $('app').hidden = false; renderAll(); return true;
+}
+$('lockForm').onsubmit = async e => {
+  e.preventDefault(); const b = $('keyBtn'); b.disabled = true; b.innerHTML = '<span class="spin"></span>Checking…';
+  await unlock($('keyInput').value.trim()); b.disabled = false; b.textContent = 'Unlock';
+};
+$('keyInput').oninput = () => { $('keyField').classList.remove('bad'); $('keyErr').textContent = ''; };
+$('lockBtn').onclick = () => { if (!guard()) return; closeEditor(true); lock(); };
+
+/* ================= toast ================= */
+let toastT;
+function toast(msg, action){
+  const t = $('toast'), b = $('toastAct'); $('toastMsg').textContent = msg;
+  b.hidden = !action; t.classList.toggle('noact', !action);
+  if (action){ b.textContent = action.label; b.onclick = () => { t.classList.remove('on'); action.run(); }; }
+  t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), action ? 7000 : 3200);
+}
+
+/* ================= tabs / list ================= */
+function moveInd(){ const b = document.querySelector(`#tabs [data-tab="${A.tab}"]`); const ind = $('tabInd'); ind.style.width = b.offsetWidth + 'px'; ind.style.transform = `translateX(${b.offsetLeft}px)`; }
+$('tabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (!b || b.dataset.tab === A.tab) return; if (!guard()) return; closeEditor(true); A.tab = b.dataset.tab; A.q = ''; $('q').value = ''; renderAll(); };
+$('q').oninput = e => { A.q = e.target.value.trim().toLowerCase(); renderList(); };
+$('groupSel').onchange = e => { A.group = e.target.value; renderList(); };
+$('floorSeg').onchange = e => { A.floor = e.target.value; renderMap(); };
+$('addBtn').onclick = () => { if (!guard()) return; openEditor(A.tab, null); };
+
+function renderAll(){
+  document.querySelectorAll('#tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === A.tab));
+  $('ctStores').textContent = A.data.stores.length; $('ctSpots').textContent = A.data.spots.length;
+  requestAnimationFrame(moveInd);
+  $('listTitle').textContent = A.tab === 'stores' ? 'Stores' : 'QR spots';
+  $('addLbl').textContent = A.tab === 'stores' ? 'Add store' : 'Add QR spot';
+  $('groupWrap').hidden = A.tab !== 'stores';
+  $('q').placeholder = A.tab === 'stores' ? 'Search name or offer' : 'Search spot name or code';
+  renderList(); renderMap();
+}
+function renderList(){
+  const S = A.data.stores, P = A.data.spots;
+  if (A.tab === 'stores'){
+    const live = S.filter(s => s.active !== false).length;
+    $('listSub').textContent = `${S.length} ${S.length === 1 ? 'store' : 'stores'} · ${live} live in AR`;
+  } else $('listSub').textContent = `${P.length} poster ${P.length === 1 ? 'location' : 'locations'}`;
+  const selId = A.ed && A.ed.kind === A.tab ? A.ed.id : null;
+  let html = '';
+  if (A.tab === 'stores'){
+    const list = S.filter(s => (A.group === 'all' || s.group === A.group) && (!A.q || (s.name + ' ' + s.offer + ' ' + s.kind).toLowerCase().includes(A.q)));
+    if (!S.length) html = `<div class="empty"><b>No stores pinned yet</b>Add the first store and it will show up in the AR view.<br><button class="btn primary" data-act="add">Add store</button></div>`;
+    else if (!list.length) html = `<div class="empty"><b>Nothing matches</b>No store matches these filters.<br><button class="btn ghost" data-act="clear">Clear filters</button></div>`;
+    else html = list.map(s => `<button class="item${s.id === selId ? ' sel' : ''}${s.active === false ? ' off' : ''}" data-id="${esc(s.id)}">
+      <span class="ilogo" style="--c:${esc(s.c)}">${esc(s.ini)}</span>
+      <span class="it"><span class="in">${esc(s.name)}</span><span class="im">${esc(s.kind || GROUP_L[s.group])} · ${esc(s.offer)}</span></span>
+      ${s.active === false ? '<span class="pill hid">Hidden</span>' : ''}<span class="pill fl">${esc(s.floor)}</span></button>`).join('');
+  } else {
+    const list = P.filter(p => !A.q || (p.name + ' ' + p.id).toLowerCase().includes(A.q));
+    if (!list.length) html = `<div class="empty"><b>Nothing matches</b>No spot matches “${esc(A.q)}”.<br><button class="btn ghost" data-act="clear">Clear search</button></div>`;
+    else html = list.map(p => `<button class="item${p.id === selId ? ' sel' : ''}" data-id="${esc(p.id)}">
+      <span class="ilogo qr">${QR_SVG}</span>
+      <span class="it"><span class="in">${esc(p.name)}</span><span class="im num">?at=${esc(p.id)} · faces ${p.facing}°</span></span>
+      <span class="pill fl">${esc(p.floor)}</span></button>`).join('');
+  }
+  $('items').innerHTML = html;
+}
+$('items').onclick = e => {
+  const act = e.target.closest('[data-act]');
+  if (act){ if (act.dataset.act === 'add') openEditor(A.tab, null); else { A.q = ''; A.group = 'all'; $('q').value = ''; $('groupSel').value = 'all'; renderList(); } return; }
+  const it = e.target.closest('.item'); if (!it) return;
+  if (A.ed && A.ed.kind === A.tab && A.ed.id === it.dataset.id) return;
+  if (!guard()) return; openEditor(A.tab, it.dataset.id);
+};
+const QR_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" stroke="currentColor" stroke-width="1.8"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM18 14h2M14 18v2" stroke="currentColor" stroke-width="1.8"/></svg>';
+
+/* ================= editor ================= */
+const blankStore = () => ({name:'', ini:'', kind:'', group:'food', floor: A.floor !== 'all' ? A.floor : 'G', x:'', y:'', c: SWATCHES[A.data.stores.length % SWATCHES.length], offer:'', a:'', d:'', active:true});
+const blankSpot = () => ({id:'', name:'', floor: A.floor !== 'all' ? A.floor : 'G', x:'', y:'', facing:0});
+const norm = o => JSON.stringify(Object.keys(o).sort().map(k => [k, o[k] == null ? '' : String(o[k])]));
+const isDirty = () => A.ed && norm(A.ed.draft) !== A.ed.orig;
+function guard(){ return !isDirty() || confirm('Discard your unsaved changes?'); }
+
+function openEditor(kind, id){
+  const src = id ? A.data[kind].find(x => x.id === id) : (kind === 'stores' ? blankStore() : blankSpot());
+  if (!src) return;
+  const draft = {...src}; if (kind === 'stores'){ if (draft.a == null) draft.a = ''; if (draft.d == null) draft.d = ''; }
+  A.ed = {kind, id, draft, orig: norm(draft), saving: false};
+  if (kind !== A.tab){ A.tab = kind; }
+  const ed = $('editor'); ed.hidden = false; ed.style.animation = 'none'; void ed.offsetWidth; ed.style.animation = '';
+  $('work').classList.add('editing');
+  ed.innerHTML = kind === 'stores' ? storeForm(!id) : spotForm(!id);
+  fillForm(); updatePreview(); renderAll();
+  setTimeout(() => { const f = ed.querySelector('[name=name]'); if (!id && f) f.focus(); }, 60);
+}
+function closeEditor(force){
+  if (!force && !guard()) return;
+  A.ed = null; $('editor').hidden = true; $('editor').innerHTML = ''; $('work').classList.remove('editing'); renderList(); renderMap();
+}
+
+function fieldErr(n){ return `<small class="err" data-err="${n}"></small>`; }
+function edHead(isNew, label){
+  return `<div class="edhead"><div><div class="eb">${isNew ? 'New ' + label : 'Edit ' + label}</div><h2 id="edTitle"></h2><span class="dirty" id="edDirty" hidden>Unsaved changes</span></div>
+    <button class="iconbtn" data-act="close" aria-label="Close editor" title="Close (Esc)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>`;
+}
+function edFoot(isNew, label){
+  return `<div class="edfoot">${isNew ? '' : `<button class="btn danger" type="button" data-act="delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Delete</button>`}
+    <span class="sp"></span><button class="btn ghost" type="button" data-act="close">Cancel</button>
+    <button class="btn primary" type="submit" id="saveBtn">${isNew ? 'Add ' + label : 'Save changes'}</button></div>`;
+}
+const floorSeg = () => `<div class="seg" role="radiogroup" aria-label="Floor">${['G','F1','F2'].map(f => `<label><input type="radio" name="floor" value="${f}"><span>${FLOOR_L[f]}</span></label>`).join('')}</div>`;
+
+function storeForm(isNew){
+  return `<form id="edForm" novalidate style="display:contents">${edHead(isNew, 'store')}
+  <div class="edbody">
+    <div class="preview" aria-hidden="true"><span class="cap">AR preview</span>
+      <span class="ptag" id="pv"><span class="ilogo" id="pvLogo"></span><span style="min-width:0"><b id="pvName"></b><small id="pvMeta"></small></span></span><span class="pstem"></span><span class="pdot"></span></div>
+    <div class="formerr" id="formErr"></div>
+    <div class="row2"><label class="field grow"><span>Store name</span><input name="name" maxlength="40" placeholder="e.g. Kopi Lab">${fieldErr('name')}</label>
+      <label class="field w96"><span>Initials</span><input name="ini" maxlength="3" placeholder="KL">${fieldErr('ini')}</label></div>
+    <div class="row2"><label class="field grow"><span>Category</span><input name="kind" maxlength="30" placeholder="e.g. Café"></label>
+      <label class="field grow"><span>Group</span><select name="group">${Object.entries(GROUP_L).map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}</select>${fieldErr('group')}</label></div>
+    <label class="field"><span class="lab">Campaign offer <span class="counter num" id="offerCt"></span></span><textarea name="offer" maxlength="120" rows="2" placeholder="e.g. Free size upgrade on any iced drink"></textarea>${fieldErr('offer')}</label>
+    <div class="field"><span class="flabel">Pin colour</span><div class="swatches" id="swatches">${SWATCHES.map(c => `<label title="${c}"><input type="radio" name="c" value="${c}"><span class="sw" style="--c:${c}"></span></label>`).join('')}
+      <label class="pick" id="pickWrap"><input type="color" name="cPick" aria-label="Custom colour">Custom</label></div>${fieldErr('c')}</div>
+    <label class="switch"><input type="checkbox" name="active"><span class="track"></span><span><b>Live in AR</b><small>Turn off to hide the pin without deleting it.</small></span></label>
+
+    <div class="group"><h3>Location in the mall<small>Click the map or drag the pin. Metres from Gate A: X is east (+) / west (−), Y is north (+) / south (−).</small></h3>
+      ${floorSeg()}${fieldErr('floor')}
+      <div class="row2"><label class="field grow"><span>X</span><span class="unit"><input name="x" type="number" step="0.5" inputmode="decimal" class="num"><i>m</i></span>${fieldErr('x')}</label>
+        <label class="field grow"><span>Y</span><span class="unit"><input name="y" type="number" step="0.5" inputmode="decimal" class="num"><i>m</i></span>${fieldErr('y')}</label></div>
+    </div>
+    <div class="group"><h3>Demo AR placement<small>Optional. The demo layout puts the pin at an angle from where the visitor faces at the poster: − is left, + is right. Leave both empty to use the map position.</small></h3>
+      <div class="row2"><label class="field grow"><span>Angle</span><span class="unit"><input name="a" type="number" step="1" min="-180" max="180" inputmode="numeric" class="num" placeholder="—"><i>°</i></span>${fieldErr('a')}</label>
+        <label class="field grow"><span>Distance</span><span class="unit"><input name="d" type="number" step="1" min="1" max="200" inputmode="numeric" class="num" placeholder="—"><i>m</i></span>${fieldErr('d')}</label></div>
+    </div>
+  </div>${edFoot(isNew, 'store')}</form>`;
+}
+function spotForm(isNew){
+  return `<form id="edForm" novalidate style="display:contents">${edHead(isNew, 'QR spot')}
+  <div class="edbody">
+    <div class="preview" aria-hidden="true"><span class="cap">Poster faces</span>
+      <span class="qrprev"><svg class="dial" id="dial" viewBox="-26 -26 52 52"><circle r="24" fill="#ede4d5"/><text y="-14" text-anchor="middle" font-size="9" font-weight="700" fill="#77634f" font-family="FC Iconic, system-ui">N</text><g id="dialArrow"><path d="M0 -17 L6 4 L0 0 L-6 4 Z" fill="#b0532c"/></g><circle r="3" fill="#5b3a24"/></svg>
+      <span><b id="pvName" style="display:block;font-weight:600;font-size:15px"></b><small id="pvMeta" class="num" style="display:block;font-size:12.5px;color:var(--ink2)"></small></span></span></div>
+    <div class="formerr" id="formErr"></div>
+    <label class="field"><span>Spot name</span><input name="name" maxlength="40" placeholder="e.g. Gate B">${fieldErr('name')}</label>
+    ${isNew ? `<label class="field"><span>Poster code</span><input name="id" maxlength="24" placeholder="e.g. gate-b" autocapitalize="off" spellcheck="false">${fieldErr('id')}<span class="help">Goes in the QR link as ?at=code. It can’t be changed after the poster is printed, so leave it empty to make one from the name.</span></label>`
+      : `<div class="field"><span class="flabel">Poster link</span><div class="linkbox"><code id="posterUrl"></code><button class="btn ghost" type="button" data-act="copy">Copy</button></div><span class="help">Turn this link into the QR code on the poster.</span></div>`}
+    <div class="group"><h3>Where the poster is<small>Click the map or drag the spot. Metres from Gate A.</small></h3>
+      ${floorSeg()}${fieldErr('floor')}
+      <div class="row2"><label class="field grow"><span>X</span><span class="unit"><input name="x" type="number" step="0.5" inputmode="decimal" class="num"><i>m</i></span>${fieldErr('x')}</label>
+        <label class="field grow"><span>Y</span><span class="unit"><input name="y" type="number" step="0.5" inputmode="decimal" class="num"><i>m</i></span>${fieldErr('y')}</label></div>
+      <label class="field"><span class="lab">Facing <span class="counter num" id="facingVal"></span></span><input name="facing" type="range" min="0" max="359" step="1" style="accent-color:var(--brown)">${fieldErr('facing')}<span class="help">The direction a visitor looks while scanning. 0° is north, 90° east. Pins are aligned to it.</span></label>
+    </div>
+  </div>${edFoot(isNew, 'spot')}</form>`;
+}
+
+function fillForm(){
+  const f = $('edForm'), d = A.ed.draft;
+  for (const el of f.elements){
+    if (!el.name) continue;
+    if (el.type === 'radio') el.checked = String(d[el.name]) === el.value;
+    else if (el.type === 'checkbox') el.checked = d[el.name] !== false;
+    else if (el.name === 'cPick') el.value = d.c || '#d4a574';
+    else if (el.name in d) el.value = d[el.name] ?? '';
+  }
+  if (A.ed.kind === 'stores') $('pickWrap').classList.toggle('on', !SWATCHES.includes(d.c));
+}
+function readInput(el){
+  const d = A.ed.draft;
+  if (el.name === 'cPick'){ d.c = el.value; f$('[name=c]:checked') && (f$('[name=c]:checked').checked = false); $('pickWrap').classList.add('on'); }
+  else if (el.name === 'c'){ d.c = el.value; $('pickWrap').classList.remove('on'); }
+  else if (el.type === 'checkbox') d[el.name] = el.checked;
+  else if (el.type === 'range') d[el.name] = Number(el.value);
+  else d[el.name] = el.value;
+  if (el.closest('.field')){ el.closest('.field').classList.remove('bad'); const e = f$(`[data-err="${el.name}"]`); if (e) e.textContent = ''; }
+}
+const f$ = sel => $('editor').querySelector(sel);
+
+function updatePreview(){
+  if (!A.ed) return; const d = A.ed.draft, isNew = !A.ed.id;
+  $('edTitle').textContent = d.name || (A.ed.kind === 'stores' ? 'Untitled store' : 'Untitled spot');
+  $('edDirty').hidden = !isDirty();
+  if (A.ed.kind === 'stores'){
+    const ini = d.ini || (d.name || '').split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase() || '—';
+    $('pvLogo').textContent = ini; $('pvLogo').style.setProperty('--c', d.c);
+    $('pvName').textContent = d.name || 'Store name';
+    $('pvMeta').textContent = [d.kind || GROUP_L[d.group], FLOOR_L[d.floor]].join(' · ');
+    $('pv').classList.toggle('off', d.active === false);
+    f$('[name=ini]').placeholder = ini === '—' ? 'KL' : ini;
+    $('offerCt').textContent = `${(d.offer || '').length}/120`;
+  } else {
+    $('pvName').textContent = d.name || 'Spot name';
+    $('pvMeta').textContent = `${FLOOR_L[d.floor]} · faces ${d.facing}°`;
+    $('dialArrow').setAttribute('transform', `rotate(${Number(d.facing) || 0})`);
+    $('facingVal').textContent = `${d.facing}° ${compass(d.facing)}`;
+    if (!isNew) $('posterUrl').textContent = posterUrl(A.ed.id);
+  }
+  const sb = $('saveBtn'); if (sb && !A.ed.saving) sb.disabled = !isNew && !isDirty();
+}
+const compass = deg => ['N','NE','E','SE','S','SW','W','NW'][Math.round((Number(deg) || 0) / 45) % 8];
+const posterUrl = id => new URL('./?at=' + encodeURIComponent(id), location.href).href;
+
+$('editor').addEventListener('input', e => { if (!A.ed || !e.target.name) return; readInput(e.target); updatePreview(); if (['x','y','floor','facing','c','ini','name','active'].includes(e.target.name)) { A.bounds = null; renderMap(); } });
+$('editor').addEventListener('change', e => { if (A.ed && e.target.type === 'radio'){ readInput(e.target); updatePreview(); renderMap(); } });
+$('editor').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  if (b.dataset.act === 'close') closeEditor();
+  if (b.dataset.act === 'delete') del();
+  if (b.dataset.act === 'copy'){ const u = posterUrl(A.ed.id); (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('Poster link copied'), () => toast(u)); }
+});
+$('editor').addEventListener('submit', e => { e.preventDefault(); save(); });
+document.addEventListener('keydown', e => {
+  if (!A.ed) return;
+  if (e.key === 'Escape' && !e.target.closest('select')) closeEditor();
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); save(); }
+});
+
+function showErrors(errs, msg){
+  $('formErr').textContent = msg || '';
+  let first = null;
+  for (const [k, m] of Object.entries(errs || {})){
+    const e = f$(`[data-err="${k}"]`); if (e) e.textContent = m;
+    const inp = f$(`[name="${k}"]`); if (inp && inp.closest('.field')){ inp.closest('.field').classList.add('bad'); first = first || inp; }
+  }
+  if (first) first.focus();
+}
+function clientCheck(){
+  const d = A.ed.draft, errs = {};
+  if (!String(d.name).trim()) errs.name = A.ed.kind === 'stores' ? 'Enter the store name' : 'Enter the spot name';
+  if (d.x === '' || !isFinite(d.x)) errs.x = 'Click the map or type a value';
+  if (d.y === '' || !isFinite(d.y)) errs.y = 'Click the map or type a value';
+  if (A.ed.kind === 'stores'){
+    if (!String(d.offer).trim()) errs.offer = 'Describe the campaign offer';
+    if ((d.a === '') !== (d.d === '')) errs[d.a === '' ? 'a' : 'd'] = 'Fill in both, or leave both empty';
+  }
+  return errs;
+}
+async function save(){
+  if (!A.ed || A.ed.saving) return;
+  const errs = clientCheck(); if (Object.keys(errs).length) return showErrors(errs, 'A few fields need attention.');
+  const {kind, id, draft} = A.ed; const b = $('saveBtn'); const label = b.innerHTML;
+  A.ed.saving = true; b.disabled = true; b.innerHTML = '<span class="spin"></span>Saving…';
+  try {
+    const body = {...draft}; delete body.cPick;
+    const r = await api(id ? 'PUT' : 'POST', `api/${kind}${id ? '/' + encodeURIComponent(id) : ''}`, body);
+    A.data = r.data; const name = r.item.name;
+    openEditor(kind, r.item.id);
+    toast(id ? `Saved ${name}` : `Added ${name} — it’s on the AR view now`);
+  } catch(e) {
+    if (e.silent) return;
+    if (A.ed){ A.ed.saving = false; b.innerHTML = label; b.disabled = false; showErrors(e.errors, e.message); }
+  }
+}
+async function del(){
+  const {kind, id} = A.ed; const item = A.data[kind].find(x => x.id === id);
+  if (kind === 'spots' && !confirm(`Delete “${item.name}”? Posters printed with ?at=${id} will fall back to the first spot.`)) return;
+  try {
+    const r = await api('DELETE', `api/${kind}/${encodeURIComponent(id)}`);
+    A.data = r.data; A.bounds = null; closeEditor(true); renderAll();
+    toast(`Deleted ${item.name}`, {label: 'Undo', run: async () => {
+      try { const r2 = await api('POST', `api/${kind}`, item); A.data = r2.data; A.bounds = null; renderAll(); toast(`Restored ${item.name}`); }
+      catch(e) { if (!e.silent) toast(e.message); }
+    }});
+  } catch(e) { if (!e.silent) toast(e.message); }
+}
+
+/* ================= map ================= */
+const svgNS = 'http://www.w3.org/2000/svg';
+const map = $('map'); let VIEW = null;
+function mapItems(){
+  const out = [];
+  A.data.spots.forEach(p => out.push({...p, mk:'spots'}));
+  A.data.stores.forEach(s => out.push({...s, mk:'stores'}));
+  if (A.ed){
+    const d = A.ed.draft, hasPos = d.x !== '' && d.y !== '' && isFinite(d.x) && isFinite(d.y);
+    const i = A.ed.id ? out.findIndex(o => o.mk === A.ed.kind && o.id === A.ed.id) : -1;
+    const rec = {...d, mk: A.ed.kind, id: A.ed.id || '__new', x: Number(d.x), y: Number(d.y), editing: true, nopos: !hasPos};
+    if (i >= 0) out[i] = rec; else out.push(rec);
+  }
+  return out;
+}
+function computeBounds(items){
+  const pts = items.filter(o => !o.nopos);
+  let minX = Math.min(-10, ...pts.map(o => o.x)), maxX = Math.max(10, ...pts.map(o => o.x));
+  let minY = Math.min(-10, ...pts.map(o => o.y)), maxY = Math.max(10, ...pts.map(o => o.y));
+  const pad = 8; minX -= pad; maxX += pad; minY -= pad; maxY += pad;
+  return {minX, maxX, minY, maxY};
+}
+function el(tag, attrs, parent){ const n = document.createElementNS(svgNS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; }
+function renderMap(){
+  const W = map.clientWidth, H = map.clientHeight; if (!W || !H) return;
+  const items = mapItems();
+  if (!A.drag || !A.bounds) A.bounds = computeBounds(items);
+  const {minX, maxX, minY, maxY} = A.bounds;
+  const padPx = 36, k = Math.min((W - padPx * 2) / (maxX - minX), (H - padPx * 2 - 64) / (maxY - minY));
+  const ox = (W - (maxX - minX) * k) / 2, oy = (H - (maxY - minY) * k) / 2 - 26;
+  VIEW = {k, ox, oy, minX, maxY};
+  const P = (x, y) => [ox + (x - minX) * k, oy + (maxY - y) * k];
+  map.setAttribute('viewBox', `0 0 ${W} ${H}`); map.innerHTML = '';
+  el('rect', {x:0, y:0, width:W, height:H, fill:'transparent', class:'bg'}, map);
+  // grid
+  const g = el('g', {}, map);
+  const step = (maxX - minX) > 120 ? 20 : 10;
+  for (let x = Math.ceil(minX / step) * step; x <= maxX; x += step){ const [px] = P(x, 0); el('line', {x1:px, y1:oy, x2:px, y2:oy + (maxY - minY) * k, stroke: x === 0 ? 'rgba(46,33,25,.22)' : 'rgba(46,33,25,.08)', 'stroke-width': 1}, g);
+    const t = el('text', {x:px, y:oy + (maxY - minY) * k + 16, 'text-anchor':'middle', 'font-size':11, fill:'#77634f', class:'num'}, g); t.textContent = x + ' m'; }
+  for (let y = Math.ceil(minY / step) * step; y <= maxY; y += step){ const [, py] = P(0, y); el('line', {x1:ox, y1:py, x2:ox + (maxX - minX) * k, y2:py, stroke: y === 0 ? 'rgba(46,33,25,.22)' : 'rgba(46,33,25,.08)', 'stroke-width': 1}, g);
+    const t = el('text', {x:ox - 6, y:py + 4, 'text-anchor':'end', 'font-size':11, fill:'#77634f'}, g); t.textContent = y; }
+  // north
+  const ng = el('g', {transform:`translate(${W - 30},${30})`}, map);
+  el('circle', {r:16, fill:'#ede4d5'}, ng); el('path', {d:'M0 -10 L5 4 L0 1 L-5 4 Z', fill:'#5b3a24'}, ng);
+  const nt = el('text', {y:-20, 'text-anchor':'middle', 'font-size':10, 'font-weight':700, fill:'#77634f'}, ng); nt.textContent = 'N';
+  // items: spots under stores, editing last
+  const order = items.filter(o => !o.nopos).sort((a, b) => (a.editing - b.editing) || (a.mk === 'spots' ? -1 : 1));
+  const marks = [], labels = [];
+  for (const o of order){
+    const [px, py] = P(o.x, o.y);
+    const dim = A.floor !== 'all' && o.floor !== A.floor && !o.editing;
+    const gi = el('g', {class:'mi' + (o.editing ? ' grab' : ''), transform:`translate(${px.toFixed(1)},${py.toFixed(1)})`, opacity: dim ? .22 : 1, 'data-kind':o.mk, 'data-id':o.id}, map);
+    if (o.editing) el('circle', {r:24, fill:'rgba(176,83,44,.14)', stroke:'#b0532c', 'stroke-width':2}, gi);
+    if (o.mk === 'spots'){
+      const f = (Number(o.facing) || 0) * Math.PI / 180, R = 40, w = 0.42;
+      const p1 = [Math.sin(f - w) * R, -Math.cos(f - w) * R], p2 = [Math.sin(f + w) * R, -Math.cos(f + w) * R];
+      el('path', {d:`M0 0 L${p1[0].toFixed(1)} ${p1[1].toFixed(1)} A${R} ${R} 0 0 1 ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} Z`, fill:'rgba(91,58,36,.16)'}, gi);
+      el('rect', {x:-13, y:-13, width:26, height:26, rx:7, fill:'#5b3a24'}, gi);
+      const q = el('g', {transform:'translate(-8,-8) scale(.667)', stroke:'#f6efe3', 'stroke-width':2.2, fill:'none'}, gi);
+      el('path', {d:'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2z'}, q);
+    } else {
+      const off = o.active === false;
+      el('circle', {r:15, fill: off ? '#f6f0e6' : o.c, stroke: off ? '#77634f' : 'rgba(46,33,25,.25)', 'stroke-width': off ? 1.5 : 1, 'stroke-dasharray': off ? '3 3' : ''}, gi);
+      const t = el('text', {y:4, 'text-anchor':'middle', 'font-size':10.5, 'font-weight':700, fill:'#2e2119'}, gi);
+      t.textContent = o.ini || (o.name || '').split(/\s+/).map(w => w[0] || '').join('').slice(0, 2).toUpperCase() || '?';
+    }
+    const r = o.mk === 'spots' ? 14 : 16;
+    marks.push({x:px - r, y:py - r, w:r * 2, h:r * 2, o});
+    labels.push({o, px, py, r, dim, text: (o.name || (o.mk === 'stores' ? 'New store' : 'New spot')) + (o.floor && o.floor !== 'G' ? ` · ${o.floor}` : '')});
+    const ti = el('title', {}, gi); ti.textContent = `${o.name || 'New'} — ${FLOOR_L[o.floor] || ''}, x ${o.x}, y ${o.y}`;
+  }
+  // labels on top: try below, above, right, left — first spot that collides with nothing wins
+  const lg = el('g', {'pointer-events':'none'}, map); const taken = [...marks];
+  const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  labels.sort((a, b) => (b.o.editing ? 1 : 0) - (a.o.editing ? 1 : 0) || (a.dim - b.dim));
+  for (const L of labels){
+    const t = el('text', {'font-size':12, 'font-weight':600, fill:'#2e2119', stroke:'#f6f0e6', 'stroke-width':4, 'paint-order':'stroke', 'stroke-linejoin':'round', opacity: L.dim ? .3 : 1}, lg);
+    t.textContent = L.text; const w = t.getComputedTextLength() + 4, h = 15, {px, py, r} = L;
+    const cands = [
+      {box:{x:px - w / 2, y:py + r + 3, w, h}, x:px, y:py + r + 14, a:'middle'},
+      {box:{x:px - w / 2, y:py - r - 3 - h, w, h}, x:px, y:py - r - 7, a:'middle'},
+      {box:{x:px + r + 5, y:py - h / 2, w, h}, x:px + r + 6, y:py + 4, a:'start'},
+      {box:{x:px - r - 5 - w, y:py - h / 2, w, h}, x:px - r - 6, y:py + 4, a:'end'},
+    ];
+    const own = taken.find(m => m.o === L.o);
+    const c = cands.find(c => !taken.some(m => m !== own && hit(c.box, m))) || cands[0];
+    t.setAttribute('x', c.x.toFixed(1)); t.setAttribute('y', c.y.toFixed(1)); t.setAttribute('text-anchor', c.a);
+    taken.push(c.box);
+  }
+  // hint
+  const hint = $('mapHint');
+  if (A.ed){ const d = A.ed.draft; hint.hidden = false;
+    $('mapHintText').textContent = (d.x === '' || d.y === '') ? `Click the map to place ${d.name || (A.ed.kind === 'stores' ? 'the new store' : 'the new spot')}` : `Drag or click to move ${d.name || 'it'}`; }
+  else { hint.hidden = true; }
+  map.classList.toggle('placing', !!A.ed);
+}
+function toWorld(e){ const r = map.getBoundingClientRect(); const {k, ox, oy, minX, maxY} = VIEW; return {x: minX + (e.clientX - r.left - ox) / k, y: maxY - (e.clientY - r.top - oy) / k}; }
+const snap = v => Math.round(v * 2) / 2;
+function placeAt(e){
+  const w = toWorld(e), d = A.ed.draft; d.x = snap(w.x); d.y = snap(w.y);
+  const fx = f$('[name=x]'), fy = f$('[name=y]'); fx.value = d.x; fy.value = d.y;
+  [fx, fy].forEach(i => { i.closest('.field').classList.remove('bad'); }); f$('[data-err=x]').textContent = ''; f$('[data-err=y]').textContent = '';
+  updatePreview(); renderMap();
+}
+map.addEventListener('pointerdown', e => {
+  if (!VIEW) return;
+  const mi = e.target.closest('.mi');
+  if (mi && !(A.ed && mi.dataset.kind === A.ed.kind && (mi.dataset.id === A.ed.id || mi.dataset.id === '__new'))){
+    if (!guard()) return; A.tab = mi.dataset.kind; openEditor(mi.dataset.kind, mi.dataset.id); return;
+  }
+  if (!A.ed) return;
+  A.drag = {id: e.pointerId}; map.classList.add('dragging'); try { map.setPointerCapture(e.pointerId); } catch(_) {}
+  placeAt(e);
+});
+map.addEventListener('pointermove', e => {
+  if (VIEW){ const w = toWorld(e); const c = $('coords'); c.hidden = false; c.textContent = `x ${snap(w.x)} · y ${snap(w.y)} m`; }
+  if (A.drag) placeAt(e);
+});
+map.addEventListener('pointerleave', () => { $('coords').hidden = true; });
+const endDrag = () => { if (!A.drag) return; A.drag = null; map.classList.remove('dragging'); A.bounds = null; renderMap(); };
+map.addEventListener('pointerup', endDrag); map.addEventListener('pointercancel', endDrag);
+new ResizeObserver(() => { renderMap(); if (!$('app').hidden) moveInd(); }).observe(map);
+window.addEventListener('beforeunload', e => { if (isDirty()){ e.preventDefault(); e.returnValue = ''; } });
+
+/* ================= boot ================= */
+(async () => {
+  let k = ''; try { k = sessionStorage.getItem(KEY_SS) || ''; } catch(e) {}
+  if (!(k && await unlock(k, true))) lock();
+})();
+})();
+</script>
+</body>
+</html>

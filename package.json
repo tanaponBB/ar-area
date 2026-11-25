@@ -1,0 +1,11 @@
+{
+  "name": "pin-hunt-ar",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Mall AR campaign prototype — QR scan opens a camera view with pinned stores",
+  "scripts": {
+    "start": "node server.js",
+    "tunnel": "node server.js --tunnel"
+  },
+  "engines": { "node": ">=18" }
+}
